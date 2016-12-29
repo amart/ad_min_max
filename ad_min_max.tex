@@ -239,12 +239,12 @@ ATL and  ADMB}} % Article title
 
 \section{Introduction}
 
-The "minimum" and "maximum" functions (usually written as \textit{min(a,b)} and \textit{max(a,b)}, respectively) are problematic for automatic differentiation systems. The issue is that existing \textit{min()} and \textit{max()} functions rely on conditional statements, or branches, to calculate the return value. This method results in a piecewise continuous function which is not generally differentiable.  In this paper we describe a method so that the \textit{min()} and \textit{max()} functions with two automatic differentiation variable types as arguments can be calculated with no branching, thereby preserving the derivatives of the variables. In addition, we describe how these functions can be implemented in ATL, ADMB, and TMB.
+The "minimum" and "maximum" functions (usually written as \textit{min(a,b)} and \textit{max(a,b)}, respectively) are problematic for automatic differentiation systems. The issue is that existing \textit{min()} and \textit{max()} function implementations rely on conditional statements, or branches, to calculate the return value. This method results in a piecewise continuous function which is not generally differentiable.  In this paper we describe a method so that the \textit{min()} and \textit{max()} functions with two automatic differentiation variable types as arguments can be calculated with no branching, thereby preserving the derivatives of the variables. In addition, we describe how these functions can be implemented in Analytics Template Library (ATL), AD Model Builder (ADMB), and Template Model Builder (TMB).
 
 
 \section{Methods}
 
-Given two variables \textit{a} and \textit{b}, calculate the minimum or maximum value. Traditional methods involve conditional operations, i.e., "if" statements are used to determine the return value:
+Given two variables \textit{a} and \textit{b}, calculate the minimum or maximum value. Existing implementations can involve conditional operations, i.e., "if" statements are used to determine the return value:
 
 \begin{cppsource}
 template<typename T>
@@ -275,11 +275,11 @@ T max(const T& a, const T& b){
 }
 \end{cppsource}
 
-These branchless versions are now differentiable everywhere except when \textit{a} and \textit{b} are both zero, as the absolute value function \textit{fabs()} is not differentiable when the argument is zero.
+These branchless versions are now differentiable everywhere except where \textit{a - b} is zero, as the absolute value function \textit{fabs()} is not differentiable when the argument is zero.
 
 \subsection{ATL}
 
-The Analytics Template Library (ATL) is a general purpose C++ template metaprogramming library for scientific computing being developed by NOAA. ATL has a reverse mode automatic differentiation module that can compute higher-order mixed derivatives up to the 3rd order. In ATL, the \textit{fabs(x)} function is not differentiable when \textit{x} is zero, thus the \textit{min()} and \textit{max()} functions are not differentiable when \textit{a} minus \textit{b} is zero. The code for \textit{min()} and \textit{max()} in ATL:
+The Analytics Template Library (ATL) is a general purpose C++ template metaprogramming library for scientific computing being developed by NOAA Fisheries. ATL has a reverse mode automatic differentiation module that can compute higher-order mixed derivatives up to the 3rd order. In ATL, the \textit{fabs(x)} function is not differentiable when \textit{x} is zero, thus the \textit{min()} and \textit{max()} functions are not differentiable where \textit{a - b} is zero. The code for \textit{min()} and \textit{max()} in ATL:
 
 \begin{cppsource}
 
@@ -319,7 +319,7 @@ inline const atl::Variable<T> max(const atl::Variable<T>& a,
 
 \subsection{ADMB}
 
-AD Model Builder, or ADMB, is a C++ application which implements automatic differentiation using specialized classes and operator overloading. Unlike ATL, the \textit{fabs(x)} function in ADMB always returns a derivative value even if x is zero. In ADMB, if x is greater than or equal to zero, the resulting derivative is 1, otherwise it is -1. ADMB documentation notes that the \textit{fabs(x)} function is a simple overload of standard C library function. Not differentiable and should not be used in cases where an independent variable is expected to change sign. However, ADMB offers an alternative function defined as \textit{sfabs(x)}. This function is described as the smooth absolute value and uses a third order polynomial to interpolate between += 0.001. Derivatives are correct for all values of independent variable != 0. This code will result in a derivative of zero when \textit{a} minus \textit{b} is zero. The ADMB code for \textit{min()} and \textit{max()}:
+AD Model Builder (ADMB) is a C++ application which implements automatic differentiation using specialized classes and operator overloading. Unlike ATL, the \textit{fabs(x)} function in ADMB always returns a derivative value even if x is zero. In ADMB, if x is greater than or equal to zero, the resulting derivative is 1, otherwise it is -1. ADMB documentation notes that the \textit{fabs(x)} function is a simple overload of the standard C library function, which is "not differentiable and should not be used in cases where an independent variable is expected to change sign." However, ADMB offers an alternative function \textit{sfabs(x)}. This function is described as the smooth absolute value and uses a third order polynomial to interpolate for values within the range (-0.001, 0.001). Derivatives are correct for all values which are not equal to zero. This code will result in a derivative of zero when \textit{a - b} is zero. The ADMB code for \textit{min()} and \textit{max()}:
 
 \begin{cppsource}
 
@@ -365,7 +365,7 @@ inline prevariable& min(const dvariable& a, const dvariable& b) {
 
 \section{Discussion}
 
-The differences in the ATL and ADMB versions of the \textit{min()} and \textit{max()} functions arise from the implementation of \textit{fabs(x)} and ADMB's \textit{sfabs(x)}.  ATL will return a derivative value of \textit{nan} when \textit{a} minus \textit{b} is zero. This is because the derivative of the absolute value function is undefined at zero. However, ADMB will return a derivative value of 0 when \textit{a} minus \textit{b} is zero. We suggest a discussion on which method is more robust for fisheries science applications, and ask for contributions from the broader community for guidance.
+The differences in the ATL and ADMB versions of the \textit{min()} and \textit{max()} functions arise from the implementation of \textit{fabs(x)} and ADMB's \textit{sfabs(x)}.  ATL will return a derivative value of \textit{nan} when \textit{a - b} is zero. This is because the analytical derivative of the absolute value function is undefined at zero. However, ADMB will return a derivative value of 0 when \textit{a - b} is zero. We suggest a discussion on which method is more robust for fisheries science applications, and ask for contributions from the broader community for guidance.
 
 \section{References}
 
