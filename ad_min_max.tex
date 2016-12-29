@@ -1,0 +1,371 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Journal Article
+% LaTeX Template
+% Version 1.3 (9/9/13)
+%
+% This template has been downloaded from:
+% http://www.LaTeXTemplates.com
+%
+% Original author:
+% Frits Wenneker (http://www.howtotex.com)
+%
+% License:
+% CC BY-NC-SA 3.0 (http://creativecommons.org/licenses/by-nc-sa/3.0/)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------------------------------------
+%	PACKAGES AND OTHER DOCUMENT CONFIGURATIONS
+%----------------------------------------------------------------------------------------
+
+\documentclass[oneside]{article}
+
+\usepackage{lipsum} % Package to generate dummy text throughout this template
+\usepackage{sectsty}
+\sectionfont{\bfseries\Large\raggedright}
+\usepackage[printwatermark]{xwatermark}
+\newwatermark[allpages,color=red!50,angle=45,scale=3,xpos=0,ypos=0]{DRAFT}
+\usepackage{makecell}
+\usepackage{pgfplots}
+\usepackage{color}
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks,
+    linktoc=all,
+    citecolor=blue,
+    filecolor=blue,
+    linkcolor=blue,
+    urlcolor=blue
+}
+\usepackage{titlesec}
+
+\setcounter{secnumdepth}{4}
+\setcounter{tocdepth}{4}
+\usepackage{listings}
+\usepackage{xcolor}
+\lstset { %
+    language=C++,
+    backgroundcolor=\color{black!5}, % set backgroundcolor
+    basicstyle=\footnotesize,% basic font setting
+}
+
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{wrapfig}
+\usepackage{forest}
+\usepackage{tikz}
+\usepackage{tikz-qtree}
+\usepackage{adjustbox}
+
+\newsavebox{\mysavebox}
+\newlength{\myrest}
+\usepackage{fix-cm}
+\usepackage{algorithm,algpseudocode,float}
+\usepackage{lipsum}
+\newcommand{\Code}[1]{%
+\lstinline{#1}}
+\usepackage[T1]{fontenc}
+\usepackage[many]{tcolorbox}
+\tcbuselibrary{listings}
+
+\newcommand{\Out}[1]{%
+\begin{lstlisting}[language=bash]
+#1
+\end{lstlisting}
+}
+\newtcblisting{cppsource}{
+  colback=white,
+  boxrule=0pt,
+  arc=0pt,
+  outer arc=0pt,
+  top=0pt,
+  bottom=0pt,
+  colframe=white,
+  listing only,
+ left=15.5pt,
+  enhanced,
+  listing options={
+    columns=flexible,
+    basicstyle=\small\ttfamily,
+    keywordstyle=\color{blue},
+    backgroundcolor=\color{black!4}, % set backgroundcolor
+    language=C++,
+    showstringspaces=false,
+    tabsize=2,
+  }
+}
+\newtcblisting{smallcppsource}{
+  colback=white,
+  boxrule=0pt,
+  arc=0pt,
+  outer arc=0pt,
+  top=0pt,
+  bottom=0pt,
+  colframe=white,
+  listing only,
+ left=15.5pt,
+  enhanced,
+  listing options={
+    columns=flexible,
+    basicstyle=\tiny\ttfamily,
+    keywordstyle=\color{blue},
+    backgroundcolor=\color{black!4}, % set backgroundcolor
+    language=C++,
+    showstringspaces=false,
+    tabsize=2,
+  }
+}
+
+\newtcblisting{myoutput}{
+  colback=white,
+  boxrule=0pt,
+  arc=0pt,
+  outer arc=0pt,
+  top=0pt,
+  bottom=0pt,
+  colframe=white,
+  listing only,
+  listing options={
+    basicstyle=\scriptsize\ttfamily\color{red},
+    breaklines=false,
+    columns=flexible,
+     backgroundcolor=\color{white}, % set backgroundcolor
+%    language=bash,
+  }
+}
+
+
+\newtcblisting{editnote}{
+  colback=white,
+  boxrule=0pt,
+  arc=0pt,
+  outer arc=0pt,
+  top=0pt,
+  bottom=0pt,
+  colframe=white,
+  listing only,
+  listing options={
+    basicstyle=\scriptsize\ttfamily,
+    breaklines=false,
+    columns=flexible,
+     backgroundcolor=\color{white}, % set backgroundcolor
+    language=bash,
+  }
+}
+
+\usepackage[sc]{mathpazo} % Use the Palatino font
+\usepackage[T1]{fontenc} % Use 8-bit encoding that has 256 glyphs
+\linespread{1.05} % Line spacing - Palatino needs more space between lines
+\usepackage{microtype} % Slightly tweak font spacing for aesthetics
+
+\usepackage[hmarginratio=1:1,top=32mm,columnsep=20pt]{geometry} % Document margins
+\usepackage{multicol} % Used for the two-column layout of the document
+\usepackage[hang, small,labelfont=bf,up,textfont=it,up]{caption} % Custom captions under/above floats in tables or figures
+\usepackage{booktabs} % Horizontal rules in tables
+\usepackage{float} % Required for tables and figures in the multi-column environment - they need to be placed in specific locations with the [H] (e.g. \begin{table}[H])
+\usepackage{hyperref} % For hyperlinks in the PDF
+
+\usepackage{lettrine} % The lettrine is the first enlarged letter at the beginning of the text
+\usepackage{paralist} % Used for the compactitem environment which makes bullet points with less space between them
+
+\usepackage{abstract} % Allows abstract customization
+\renewcommand{\abstractnamefont}{\normalfont\bfseries} % Set the "Abstract" text to bold
+\renewcommand{\abstracttextfont}{\normalfont\small\itshape} % Set the abstract itself to small italic text
+
+\usepackage{titlesec} % Allows customization of titles
+%\renewcommand\thesection{\Roman{section}} % Roman numerals for the sections
+%\renewcommand\thesubsection{\Roman{subsection}} % Roman numerals for subsections
+%\titleformat{\section}[block]{\large\scshape\centering}{\thesection.}{1em}{} % Change the look of the section titles
+%\titleformat{\subsection}[block]{\large}{\thesubsection.}{1em}{} % Change the look of the section titles
+
+\usepackage{fancyhdr} % Headers and footers
+\pagestyle{fancy} % All pages have headers and footers
+%\fancyhead{} % Blank out the default header
+%\fancyfoot{} % Blank out the default footer
+%\fancyhead[C]{Some Journal $\bullet$ August 2016 $\bullet$ Vol. XXI, No. 1} % Custom header text
+%\fancyfoot[RO,LE]{\thepage} % Custom footer text
+
+
+
+%----------------------------------------------------------------------------------------
+%	TITLE SECTION
+%----------------------------------------------------------------------------------------
+
+\title{\vspace{-15mm}\fontsize{24pt}{10pt}\selectfont\textbf{Differentiable  \protect\\ Min And Max Functions \protect\\
+For \protect\\
+ATL and  ADMB}} % Article title
+
+\author{
+\large
+\textsc{Matthew R. Supernaw}\\[2mm] % Your name
+\normalsize National Oceanic Atmospheric Administration \\ % Your institution
+\normalsize National Marine Fisheries Service, Office of Science and Technology\\ % Your institution
+\normalsize \href{mailto:matthew.supernaw@noaa.gov}{matthew.supernaw@noaa.gov} \\ % Your email address
+\\
+\textsc{Teresa A'mar, PhD}\\[2mm] % Your name
+\normalsize National Oceanic Atmospheric Administration \\ % Your institution
+\normalsize National Marine Fisheries Service, Office of Science and Technology\\ % Your institution
+\normalsize \href{mailto:teresa.amar@noaa.gov}{teresa.amar@noaa.gov} \\% Your email address
+\vspace{-5mm}
+}
+\date{}
+
+%----------------------------------------------------------------------------------------
+
+\begin{document}
+
+\maketitle % Insert title
+
+\thispagestyle{fancy} % All pages have headers and footers
+
+%----------------------------------------------------------------------------------------
+%	ABSTRACT
+%----------------------------------------------------------------------------------------
+
+%\begin{abstract}
+%
+%\noindent
+%
+%
+%\end{abstract}
+
+%----------------------------------------------------------------------------------------
+%	ARTICLE CONTENTS
+%----------------------------------------------------------------------------------------
+
+\newpage
+\tableofcontents
+\newpage
+
+\section{Introduction}
+The min and max value for automatic differentiation system is problematic. The problem arises from the fact that traditional min and max functions rely on conditional statements, or branches to find the desired value. This method makes a piecewise non continuous function.  In this paper we describe a method that allows one to find the min or max value between two automatic differentiation variables types in a way that is continuous, thereby preserving the derivatives of the involved variables. In addition, we describe how these functions can be implemented in ATL, ADMB, and TMB.
+
+
+\section{Methods}
+Given two variables a and b, we desire to find the min or max between them. Traditional methods involve conditional operations, ie if statements to determine the desired value:
+
+\begin{cppsource}
+template<typename T>
+T min(const T& a, const T& b){
+   return a < b ? a : b;
+} 
+
+template<typename T>
+T max(const T& a, const T& b){
+   return a > b ? a : b;
+} 
+
+\end{cppsource}
+
+
+As you can see, the above functions will not work in a automatic Differentiation system since the function themselves are not differentiable given the branches the code. A common branchless alternative can be used:
+\begin{cppsource}
+template<typename T>
+T min(const T& a, const T& b){
+   return (a + b - fabs(a - b)) / 2.0;
+} 
+
+template<typename T>
+T max(const T& a, const T& b){
+   return (a + b + fabs(a - b)) / 2.0;
+} 
+\end{cppsource}
+
+These branchless versions are now differentiable everywhere except when a and b are both zero because the absolute value of x is not differentiable when z is zero. 
+
+\subsection{ATL}
+In ATL, the fabs(x) function is not differentiable when x is zero, therefore the min and max functions are not differentiable when a and b are both zero. The code for min and max in ATL looks like: 
+\begin{cppsource}
+
+/**
+ * Returns the minimum between a and b in a continuous manner using:
+ * 
+ * (a + b - |a - b|) / 2.0;
+ * 
+ * @param a
+ * @param b
+ * @return 
+ */
+template <typename T>
+inline const atl::Variable<T> min(const atl::Variable<T>& a, 
+	const atl::Variable<T>& b) {
+    return (a + b - atl::fabs((a - b))) / 2.0;
+}
+
+/**
+ * Returns the maximum between a and b in a continuous manner using:
+ * 
+ * (a + b + |a - b|) / 2.0;
+ * 
+ * @param a
+ * @param b
+ * @return 
+ */
+template <typename T>
+inline const atl::Variable<T> max(const atl::Variable<T>& a, 
+	const atl::Variable<T>& b) {
+    return (a + b + atl::fabs((a - b))) / 2.0;
+}
+
+
+\end{cppsource} 
+
+
+\subsection{ADMB}
+
+Unlike ATL, the fabs(x) function in ADMB will always give a derivative value even if x is zero. In ADMB, if x is greater than or equal to zero, the resulting derivative is 1, else it is -1.  The code for min and max in ADMB looks like: 
+\begin{cppsource}
+
+/**
+ * Returns the maximum between a and b in a continuous manner using:
+ * 
+ * (a + b + |a - b|) / 2.0;
+ * 
+ * @param a
+ * @param b
+ * @return 
+ */
+inline prevariable& ad_max(const dvariable& a, const dvariable& b) {
+    if (++gradient_structure::RETURN_PTR > gradient_structure::MAX_RETURN)
+        gradient_structure::RETURN_PTR = gradient_structure::MIN_RETURN;
+
+    *gradient_structure::RETURN_PTR = (a + b + fabs(a - b)) / 2.0;
+    return *gradient_structure::RETURN_PTR;
+}
+
+
+/**
+ * Returns the minimum between a and b in a continuous manner using:
+ * 
+ * (a + b - |a - b|) / 2.0;
+ * 
+ * @param a
+ * @param b
+ * @return 
+ */
+inline prevariable& ad_min(const dvariable& a, const dvariable& b) {
+    if (++gradient_structure::RETURN_PTR > gradient_structure::MAX_RETURN)
+        gradient_structure::RETURN_PTR = gradient_structure::MIN_RETURN;
+
+    *gradient_structure::RETURN_PTR = (a + b - fabs(a - b)) / 2.0;
+    return *gradient_structure::RETURN_PTR;
+}
+
+\end{cppsource} 
+
+
+\section{Validation and Verification}
+
+\section{Discussion}
+
+\section{References}
+
+\section{Appendix A: ATL Source Code}
+
+
+\section{Appendix B: ADMB Source Code}
+
+
+\section{Appendix C: TMB Source Code}
+
+\end{document}
