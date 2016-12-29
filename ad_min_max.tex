@@ -126,7 +126,7 @@
   colframe=white,
   listing only,
   listing options={
-    basicstyle=\scriptsize\ttfamily\color{red},
+    basicstyle=\scriptsize\ttfamily\color{black},
     breaklines=false,
     columns=flexible,
      backgroundcolor=\color{white}, % set backgroundcolor
@@ -191,8 +191,8 @@
 %	TITLE SECTION
 %----------------------------------------------------------------------------------------
 
-\title{\vspace{-15mm}\fontsize{24pt}{10pt}\selectfont\textbf{Differentiable  \protect\\ Min And Max Functions \protect\\
-For \protect\\
+\title{\vspace{-15mm}\fontsize{24pt}{10pt}\selectfont\textbf{Notes On \protect\\  Implementing Differentiable  \protect\\ Min And Max Functions \protect\\
+In \protect\\
 ATL and  ADMB}} % Article title
 
 \author{
@@ -238,11 +238,11 @@ ATL and  ADMB}} % Article title
 \newpage
 
 \section{Introduction}
-The min and max value for automatic differentiation system is problematic. The problem arises from the fact that traditional min and max functions rely on conditional statements, or branches to find the desired value. This method makes a piecewise non continuous function.  In this paper we describe a method that allows one to find the min or max value between two automatic differentiation variables types in a way that is continuous, thereby preserving the derivatives of the involved variables. In addition, we describe how these functions can be implemented in ATL, ADMB, and TMB.
+The \textit{min} and \textit{max} functions for automatic differentiation systems are problematic. The problem arises from the fact that traditional min and max functions rely on conditional statements, or branches to find the desired value. This results in a piecewise function.  In this essay we describe a simple method that allows one to find the min or max value between two automatic differentiation variables types in a way that is continuous except where the absolute value is undefined, thereby preserving the derivatives of the involved variables. In addition, we describe how these functions can be implemented in ATL and ADMB.
 
 
 \section{Methods}
-Given two variables a and b, we desire to find the min or max between them. Traditional methods involve conditional operations, ie if statements to determine the desired value:
+Given two variables a and b, we desire to find the \textit{min}  or \textit{max} between them. The typical method involves a conditional statement to determine the desired value:
 
 \begin{cppsource}
 template<typename T>
@@ -257,8 +257,7 @@ T max(const T& a, const T& b){
 
 \end{cppsource}
 
-
-As you can see, the above functions will not work in a automatic Differentiation system since the function themselves are not differentiable given the branches the code. A common branchless alternative can be used:
+As you can see, the above functions will not work in a automatic differentiation system since the function themselves are not differentiable given the branch statements in the code. A common branchless alternative can be used:
 \begin{cppsource}
 template<typename T>
 T min(const T& a, const T& b){
@@ -271,10 +270,10 @@ T max(const T& a, const T& b){
 } 
 \end{cppsource}
 
-These branchless versions are now differentiable everywhere except when a and b are both zero because the absolute value of x is not differentiable when z is zero. 
+These branchless versions are now differentiable everywhere except when \textit{a} minus \textit{b} are  zero because the absolute value of x is not differentiable when x is zero. 
 
 \subsection{ATL}
-In ATL, the fabs(x) function is not differentiable when x is zero, therefore the min and max functions are not differentiable when a and b are both zero. The code for min and max in ATL looks like: 
+The Analytics Template Library (ATL) is a general purpose scientific computing library based on template meta programming being developed by NOAA. ATL has a reverse mode automatic differentiation module that can compute higher-order mixed derivatives up to the 3rd order. In ATL, the \textit{fabs(x)} function is not differentiable when \textit{x} is zero, therefore the \textit{min} and \textit{max} functions are not differentiable when \textit{a} minus \textit{b} is zero. The code for \textit{min} and \textit{max} in ATL looks like: 
 \begin{cppsource}
 
 /**
@@ -289,7 +288,7 @@ In ATL, the fabs(x) function is not differentiable when x is zero, therefore the
 template <typename T>
 inline const atl::Variable<T> min(const atl::Variable<T>& a, 
 	const atl::Variable<T>& b) {
-    return (a + b - atl::fabs((a - b))) / 2.0;
+    return (a + b - atl::fabs(a - b)) / 2.0;
 }
 
 /**
@@ -304,7 +303,7 @@ inline const atl::Variable<T> min(const atl::Variable<T>& a,
 template <typename T>
 inline const atl::Variable<T> max(const atl::Variable<T>& a, 
 	const atl::Variable<T>& b) {
-    return (a + b + atl::fabs((a - b))) / 2.0;
+    return (a + b + atl::fabs(a - b)) / 2.0;
 }
 
 
@@ -313,7 +312,7 @@ inline const atl::Variable<T> max(const atl::Variable<T>& a,
 
 \subsection{ADMB}
 
-Unlike ATL, the fabs(x) function in ADMB will always give a derivative value even if x is zero. In ADMB, if x is greater than or equal to zero, the resulting derivative is 1, else it is -1.  The code for min and max in ADMB looks like: 
+Unlike ATL, the \textit{fabs(x)} function in ADMB will always give a derivative value even if \textit{x} is zero. In ADMB, if \textit{x} is greater than or equal to zero, the resulting derivative of \textit{x} is 1, else it is -1.  The code for \textit{min} and \textit{max} in ADMB looks like: 
 \begin{cppsource}
 
 /**
@@ -325,7 +324,7 @@ Unlike ATL, the fabs(x) function in ADMB will always give a derivative value eve
  * @param b
  * @return 
  */
-inline prevariable& ad_max(const dvariable& a, const dvariable& b) {
+inline prevariable& max(const dvariable& a, const dvariable& b) {
     if (++gradient_structure::RETURN_PTR > gradient_structure::MAX_RETURN)
         gradient_structure::RETURN_PTR = gradient_structure::MIN_RETURN;
 
@@ -343,7 +342,7 @@ inline prevariable& ad_max(const dvariable& a, const dvariable& b) {
  * @param b
  * @return 
  */
-inline prevariable& ad_min(const dvariable& a, const dvariable& b) {
+inline prevariable& min(const dvariable& a, const dvariable& b) {
     if (++gradient_structure::RETURN_PTR > gradient_structure::MAX_RETURN)
         gradient_structure::RETURN_PTR = gradient_structure::MIN_RETURN;
 
@@ -354,18 +353,198 @@ inline prevariable& ad_min(const dvariable& a, const dvariable& b) {
 \end{cppsource} 
 
 
-\section{Validation and Verification}
+%\section{Validation and Verification}
 
 \section{Discussion}
-
+It should be emphasized that the differences in the ATL and ADMB versions of the \textit{min} and \textit{max} functions arise from the implementation of \textit{fabs(x)}. As mentioned above, ATL will return a derivative value of \textit{nan} when \textit{a} minus \textit{b} is zero. This is because the |x| is undefined at zero. However, ADMB will return a derivative value of 1 when x is zero. We reserve judgement on which way is better for the work we do in fisheries science and ask contribution from the broader community for guidance. 
 \section{References}
 
-\section{Appendix A: ATL Source Code}
+\section{Appendix A: ATL Example Source Code}
+
+\begin{cppsource}
+
+/**
+ * Returns the minimum between a and b in a continuous manner using:
+ * 
+ * (a + b - |a - b)|) / 2.0;
+ * 
+ * @param a
+ * @param b
+ * @return 
+ */
+template <typename T>
+inline const atl::Variable<T> ad_min(const atl::Variable<T>& a, 
+const atl::Variable<T>& b) {
+    return (a + b - atl::fabs((a - b))) / 2.0;
+}
+
+/**
+ * Returns the maximum between a and b in a continuous manner using:
+ * 
+ * (a + b + |a - b|) / 2.0;
+ * 
+ * @param a
+ * @param b
+ * @return 
+ */
+template <typename T>
+inline const atl::Variable<T> max(const atl::Variable<T>& a,
+ const atl::Variable<T>& b) {
+    return (a + b + atl::fabs(a - b)) / (2.0);
+}
 
 
-\section{Appendix B: ADMB Source Code}
+inline const atl::Variable<double> ad_normalize_and_sum(
+std::vector<atl::Variable<double> >& v) {
+    atl::Variable<double> maxv;
+    for (int i = 0; i < v.size(); i++) {
+        maxv = max(maxv, v[i]);
+    }
+
+    for (int i = 0; i < v.size(); i++) {
+        v[i] /= maxv;
+    }
+
+    atl::Variable<double> sum;
+    for (int i = 0; i < v.size(); i++) {
+        sum += v[i];
+    }
+
+    return sum;
+}
+\end{cppsource}
+
+\begin{cppsource}
+
+inline const atl::Variable<double> ad_min_max_test(int nvar, 
+std::vector<atl::Variable<double> >& x) {
+    std::vector<atl::Variable<double> > X(nvar, atl::Variable<double>());
+    for (int i = 0; i < x.size(); i++) {
+        X[i] = atl::Variable<double>(x[i] * x[i]);
+    }
+    return ad_normalize_and_sum(X);
+
+}
+
+/*
+ * 
+ */
+int main(int argc, char** argv) {
 
 
-\section{Appendix C: TMB Source Code}
+    std::vector<atl::Variable<double> > x(10);
+    for (int i = 0; i < x.size(); i++) {
+        x[i] = (double) (i + 1);
+    }
 
+    atl::Variable<double> ret = ad_min_max_test(x.size(), x);
+
+    atl::Variable<double>::tape.Accumulate();
+    std::cout << "Gradient:\n";
+    for (int i = 0; i < x.size(); i++) {
+        std::cout << 
+        atl::Variable<double>::tape.first_order_derivtives[x[i].info->id] << " ";
+    }
+    return 0;
+}
+
+\end{cppsource}
+
+\textbf{Output}
+\begin{myoutput}
+Gradient:
+0.02 0.04 0.06 0.08 0.1 0.12 0.14 0.16 0.18 -0.57 
+\end{myoutput}
+
+\section{Appendix B: ADMB Example Source Code}
+
+
+\begin{cppsource}
+/**
+ * Returns the minimum between a and b in a continuous manner using:
+ * 
+ * (a + b - |a - b|) / 2.0;
+ * 
+ * @param a
+ * @param b
+ * @return 
+ */
+inline prevariable& min(const dvariable& a, const dvariable& b) {
+    if (++gradient_structure::RETURN_PTR > gradient_structure::MAX_RETURN)
+        gradient_structure::RETURN_PTR = gradient_structure::MIN_RETURN;
+
+    *gradient_structure::RETURN_PTR = (a + b - fabs(a - b)) / (2.0);
+    return *gradient_structure::RETURN_PTR;
+}
+
+/**
+ * Returns the maximum between a and b in a continuous manner using:
+ * 
+ * (a + b + |a - b|) / 2.0;
+ * 
+ * @param a
+ * @param b
+ * @return 
+ */
+inline prevariable& max(const dvariable& a, const dvariable& b) {
+    if (++gradient_structure::RETURN_PTR > gradient_structure::MAX_RETURN)
+        gradient_structure::RETURN_PTR = gradient_structure::MIN_RETURN;
+
+    *gradient_structure::RETURN_PTR = (a + b + fabs(a - b)) / (2.0);
+    return *gradient_structure::RETURN_PTR;
+}
+
+const dvariable ad_normalize_and_sum(std::vector<dvariable>& v) {
+    dvariable max = 0.0;
+    for (int i = 0; i < v.size(); i++) {
+        max = max(max, v[i]);
+    }
+
+    for (int i = 0; i < v.size(); i++) {
+        v[i] /= max;
+    }
+
+    dvariable sum;
+    for (int i = 0; i < v.size(); i++) {
+        sum += v[i];
+    }
+
+    return sum;
+}
+\end{cppsource}
+
+\begin{cppsource}
+inline const dvariable ad_min_max_test(int nvar, dvar_vector x) {
+    std::vector<dvariable> X(nvar);
+    for (int i = 0; i < X.size(); i++) {
+        X[i] = x(i + 1) * x(i + 1);
+    }
+    return ad_normalize_and_sum(X);
+}
+
+int main(int argc, char** argv) {
+    int nvar = 10;
+    gradient_structure::set_MAX_NVAR_OFFSET(nvar);
+    gradient_structure gs(800000000L);
+
+    dvector g(1, nvar);
+    independent_variables x(1, nvar);
+    for (int i = 1; i <= nvar; i++) {
+        x(i) = (double) i;
+    }
+
+
+
+    dvariable ret = ad_min_max_test(nvar, x);
+    
+    gradcalc(nvar, g); // The derivatives are calculated
+    cout << "Gradient:\n" << g << "\n";
+    return 0;
+}
+\end{cppsource}
+\textbf{Output}
+\begin{myoutput}
+Gradient:
+0.02 0.04 0.06 0.08 0.1 0.12 0.14 0.16 0.18 -0.57 
+\end{myoutput}
 \end{document}
