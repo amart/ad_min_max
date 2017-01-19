@@ -180,10 +180,10 @@
 
 \usepackage{fancyhdr} % Headers and footers
 \pagestyle{fancy} % All pages have headers and footers
-%\fancyhead{} % Blank out the default header
-%\fancyfoot{} % Blank out the default footer
-%\fancyhead[C]{Some Journal $\bullet$ August 2016 $\bullet$ Vol. XXI, No. 1} % Custom header text
-%\fancyfoot[RO,LE]{\thepage} % Custom footer text
+\fancyhead{} % Blank out the default header
+\fancyfoot{} % Blank out the default footer
+\fancyhead[C]{NOAA, Office Of Science and Technology, National Modeling and Assessment Team \\ Internal Document $\bullet$ December 2016 } % Custom header text
+%    \fancyfoot[RO,LE]{\thepage} % Custom footer text
 
 
 
@@ -239,7 +239,7 @@ ATL and  ADMB}} % Article title
 
 \section{Introduction}
 
-The "minimum" and "maximum" functions (usually written as \textit{min(a,b)} and \textit{max(a,b)}, respectively) are problematic for automatic differentiation systems. The issue is that existing \textit{min()} and \textit{max()} function implementations rely on conditional statements, or branches, to calculate the return value. This method results in a piecewise continuous function which is not generally differentiable.  In this paper we describe a method so that the \textit{min()} and \textit{max()} functions with two automatic differentiation variable types as arguments can be calculated with no branching, thereby preserving the derivatives of the variables. In addition, we describe how these functions can be implemented in Analytics Template Library (ATL), AD Model Builder (ADMB), and Template Model Builder (TMB).
+The "minimum" and "maximum" functions (usually written as \textit{min(a,b)} and \textit{max(a,b)}, respectively) are problematic for automatic differentiation systems. The issue is that existing \textit{min()} and \textit{max()} function implementations rely on conditional statements, or branches, to calculate the return value. This method results in a piecewise continuous function which is not generally differentiable.  In this paper we describe a method so that the \textit{min()} and \textit{max()} functions with two automatic differentiation variable types as arguments can be calculated with no branching, thereby preserving the derivatives of the variables. In addition, we describe how these functions can be implemented in Analytics Template Library (ATL) and AD Model Builder (ADMB).
 
 
 \section{Methods}
@@ -319,7 +319,7 @@ inline const atl::Variable<T> max(const atl::Variable<T>& a,
 
 \subsection{ADMB}
 
-AD Model Builder (ADMB) is a C++ application which implements automatic differentiation using specialized classes and operator overloading. Unlike ATL, the \textit{fabs(x)} function in ADMB always returns a derivative value even if x is zero. In ADMB, if x is greater than or equal to zero, the resulting derivative is 1, otherwise it is -1. ADMB documentation notes that the \textit{fabs(x)} function is a simple overload of the standard C library function, which is "not differentiable and should not be used in cases where an independent variable is expected to change sign." However, ADMB offers an alternative function \textit{sfabs(x)}. This function is described as the smooth absolute value and uses a third order polynomial to interpolate for values within the range (-0.001, 0.001). Derivatives are correct for all values which are not equal to zero. This code will result in a derivative of zero when \textit{a - b} is zero. The ADMB code for \textit{min()} and \textit{max()}:
+AD Model Builder (ADMB) is a mature C++ application which implements automatic differentiation using specialized classes and operator overloading. \cite{ admb} Unlike ATL, the \textit{fabs(x)} function in ADMB always returns a derivative value even if x is zero. In ADMB, if x is greater than or equal to zero, the resulting derivative is 1, otherwise it is -1. ADMB documentation notes that the \textit{fabs(x)} function is a simple overload of the standard C library function, which is "not differentiable and should not be used in cases where an independent variable is expected to change sign." However, ADMB offers an alternative function \textit{sfabs(x)}. This function is described as the smooth absolute value and uses a third order polynomial to interpolate for values within the range (-0.001, 0.001). Derivatives are correct for all values which are not equal to zero. This code will result in a derivative of zero when \textit{a - b} is zero. The ADMB code for \textit{min()} and \textit{max()}:
 
 \begin{cppsource}
 
@@ -361,14 +361,67 @@ inline prevariable& min(const dvariable& a, const dvariable& b) {
 \end{cppsource}
 
 
-%\section{Validation and Verification}
+
 
 \section{Discussion}
 
-The differences in the ATL and ADMB versions of the \textit{min()} and \textit{max()} functions arise from the implementation of \textit{fabs(x)} and ADMB's \textit{sfabs(x)}.  ATL will return a derivative value of \textit{nan} when \textit{a - b} is zero. This is because the analytical derivative of the absolute value function is undefined at zero. However, ADMB will return a derivative value of 0 when \textit{a - b} is zero. We suggest a discussion on which method is more robust for fisheries science applications, and ask for contributions from the broader community for guidance.
+The differences in the ATL and ADMB versions of the \textit{min()} and \textit{max()} functions arise from the implementation of \textit{fabs(x)} and ADMB's \textit{sfabs(x)}.  ATL will return a derivative value of \textit{nan} when \textit{a - b} is zero. This is because the analytical derivative of the absolute value function is undefined at zero. However, ADMB will return a derivative value of 0 when \textit{a - b} is zero. An alternative to \textit{atl::fabs(x)} and \textit{sfabs(x)} can be used. The code for the ATL version:
+
+
+\begin{cppsource}
+ /**
+     * Evaluates pow((expr*expr)+C, .5).
+     * 
+     * Used when expr could evaluate to zero.
+     * 
+     * @param expr
+     * @param C default = std::numeric_limits< double >::denorm_min()
+     * @return 
+     */
+    template<class REAL_T, class EXPR>
+    const atl::Variable<REAL_T> ad_fabs(const atl::ExpressionBase<REAL_T, EXPR>& expr,
+     REAL_T C = std::numeric_limits< REAL_T >::denorm_min()) {
+        return atl::pow((expr * expr) + C, .5);
+    }
+
+\end{cppsource}
+
+And for ADMB:
+
+\begin{cppsource}
+/**
+ * Evaluates pow((x*x)+C, .5).
+ * 
+ * Used when x could evaluate to zero.
+ * 
+ * @param x
+ * @param C default = std::numeric_limits< double >::denorm_min()
+ * @return 
+ */
+inline prevariable& ad_fabs(const dvariable& x, 
+double C = std::numeric_limits< double >::denorm_min()) {
+    if (++gradient_structure::RETURN_PTR > gradient_structure::MAX_RETURN)
+        gradient_structure::RETURN_PTR = gradient_structure::MIN_RETURN;
+
+    *gradient_structure::RETURN_PTR = pow((x * x) + C, .5);
+    return *gradient_structure::RETURN_PTR;
+}
+
+\end{cppsource}
+
+In the above code listings, we simple add a very small constant to keep the derivative of the absolute value of \textit{x} from being undefined. This small value is enough to keep the derivatives from returning NaN when \textit{x} is zero, while having little effect in gradient based optimization routines.    
+
+We suggest a discussion on which method is more robust for fisheries science applications, and ask for contributions from the broader community for guidance.
 
 \section{References}
+\begin{thebibliography}{9}
 
+\bibitem{admb} 
+Fournier, D.A., Skaug, H.J., Ancheta, J., Ianelli, J., Magnusson, A., Maunder, M.N., Nielsen, A., and Sibert, J. 2012.
+\textit{AD Model Builder: using automatic differentiation for statistical inference of highly parameterized complex nonlinear models.}
+\textit{Optim. Methods Softw. 27:233-249.}
+
+\end{thebibliography}
 \section{Appendix A: ATL Example Source Code}
 
 \begin{cppsource}
@@ -385,7 +438,7 @@ The differences in the ATL and ADMB versions of the \textit{min()} and \textit{m
 template <typename T>
 inline const atl::Variable<T> ad_min(const atl::Variable<T>& a,
 const atl::Variable<T>& b) {
-    return (a + b - atl::fabs((a - b))) / 2.0;
+    return (a + b - ad_fabs((a - b))) / 2.0;
 }
 
 /**
@@ -400,7 +453,7 @@ const atl::Variable<T>& b) {
 template <typename T>
 inline const atl::Variable<T> max(const atl::Variable<T>& a,
  const atl::Variable<T>& b) {
-    return (a + b + atl::fabs(a - b)) / (2.0);
+    return (a + b + ad_fabs(a - b)) / (2.0);
 }
 
 
@@ -481,7 +534,7 @@ inline prevariable& min(const dvariable& a, const dvariable& b) {
     if (++gradient_structure::RETURN_PTR > gradient_structure::MAX_RETURN)
         gradient_structure::RETURN_PTR = gradient_structure::MIN_RETURN;
 
-    *gradient_structure::RETURN_PTR = (a + b - sfabs(a - b)) / (2.0);
+    *gradient_structure::RETURN_PTR = (a + b - ad_fabs(a - b)) / (2.0);
     return *gradient_structure::RETURN_PTR;
 }
 
@@ -498,7 +551,7 @@ inline prevariable& max(const dvariable& a, const dvariable& b) {
     if (++gradient_structure::RETURN_PTR > gradient_structure::MAX_RETURN)
         gradient_structure::RETURN_PTR = gradient_structure::MIN_RETURN;
 
-    *gradient_structure::RETURN_PTR = (a + b + sfabs(a - b)) / (2.0);
+    *gradient_structure::RETURN_PTR = (a + b + ad_fabs(a - b)) / (2.0);
     return *gradient_structure::RETURN_PTR;
 }
 
